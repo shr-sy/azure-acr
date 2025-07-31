@@ -29,10 +29,12 @@ jobs:
     - name: Azure ACR Login
       run: az acr login --name $ACR_NAME
 
-    - name: Build and Push Docker Image to ACR
+    - name: Build and Push Docker image
       run: |
-        docker build -t $ACR_NAME.azurecr.io/$IMAGE_NAME:$IMAGE_TAG ./my-app
-        docker push $ACR_NAME.azurecr.io/$IMAGE_NAME:$IMAGE_TAG
+        docker build -t $ACR_NAME.azurecr.io/$IMAGE_NAME ./my-app
+        az acr login --name $ACR_NAME
+        docker push $ACR_NAME.azurecr.io/$IMAGE_NAME
+
 
     - name: Deploy to Web App from ACR
       run: |
