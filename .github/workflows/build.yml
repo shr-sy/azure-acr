@@ -1,7 +1,7 @@
-name: Deploy to Azure Web App from ACR
+name: Build and Deploy to Azure Web App from ACR
 
 on:
-  workflow_dispatch:  # Manually triggered
+  workflow_dispatch:  # Manual trigger
   push:
     branches:
       - main
@@ -10,10 +10,11 @@ env:
   RESOURCE_GROUP: MyResourceGroup
   WEBAPP_NAME: mywebappdocker123
   ACR_NAME: myregistry123 # without .azurecr.io
-  IMAGE_NAME: myapp:latest
+  IMAGE_NAME: myapp
+  IMAGE_TAG: latest
 
 jobs:
-  deploy:
+  build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
@@ -25,15 +26,20 @@ jobs:
       with:
         creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-    - name: Configure ACR Login
+    - name: Azure ACR Login
       run: az acr login --name $ACR_NAME
 
-    - name: Deploy to Web App
+    - name: Build and Push Docker Image to ACR
+      run: |
+        docker build -t $ACR_NAME.azurecr.io/$IMAGE_NAME:$IMAGE_TAG ./my-app
+        docker push $ACR_NAME.azurecr.io/$IMAGE_NAME:$IMAGE_TAG
+
+    - name: Deploy to Web App from ACR
       run: |
         az webapp config container set \
           --name $WEBAPP_NAME \
           --resource-group $RESOURCE_GROUP \
-          --docker-custom-image-name $ACR_NAME.azurecr.io/$IMAGE_NAME \
+          --docker-custom-image-name $ACR_NAME.azurecr.io/$IMAGE_NAME:$IMAGE_TAG \
           --docker-registry-server-url https://$ACR_NAME.azurecr.io
 
     - name: Restart Web App
