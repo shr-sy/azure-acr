@@ -1,28 +1,19 @@
-# Stage 1: Build the app
-FROM node:18-alpine AS builder
-
-WORKDIR /app
-
-# Install dependencies early for caching
-COPY package*.json ./
-RUN npm install
-
-# Copy source code
-COPY . .
-
-# Optional: run build script if using React, TypeScript, etc.
-# RUN npm run build
-
-# Stage 2: Production image
 FROM node:18-alpine
 
+# Set working directory
 WORKDIR /app
 
-# Copy only necessary files from builder
-COPY --from=builder /app .
+# Copy only package files first
+COPY package*.json ./
 
-# Expose the port your app runs on
+# Install dependencies and capture logs
+RUN npm install || (cat /root/.npm/_logs/*-debug-*.log && false)
+
+# Copy app source
+COPY . .
+
+# Expose port (optional, change if needed)
 EXPOSE 3000
 
-# Default command to run the app
-CMD ["node", "server.js"]
+# Default command (adjust if needed)
+CMD ["npm", "start"]
