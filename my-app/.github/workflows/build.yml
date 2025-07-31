@@ -32,3 +32,7 @@ jobs:
         run: |
           docker build -t ${{ secrets.ACR_NAME }}.azurecr.io/sample-app:latest .
           docker push ${{ secrets.ACR_NAME }}.azurecr.io/sample-app:latest
+
+
+
+
