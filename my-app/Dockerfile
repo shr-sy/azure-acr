@@ -1,19 +1,19 @@
 FROM node:18-alpine
 
-# Set working directory
 WORKDIR /app
 
-# Copy only package files first
+# Copy package files
 COPY package*.json ./
 
-# Install dependencies and capture logs
-RUN npm install || (cat /root/.npm/_logs/*-debug-*.log && false)
+# Install dependencies and print debug logs if failed
+RUN npm install || (echo "=== NPM INSTALL FAILED ===" && \
+    echo "Dumping npm logs:" && \
+    find /root/.npm/_logs -type f && \
+    cat /root/.npm/_logs/* || true && false)
 
-# Copy app source
+# Copy source code
 COPY . .
 
-# Expose port (optional, change if needed)
 EXPOSE 3000
 
-# Default command (adjust if needed)
 CMD ["npm", "start"]
