@@ -1,21 +1,22 @@
-name: Deploy Azure Web App from ACR
+name: Deploy to Azure Web App from ACR
 
 on:
-  workflow_dispatch:
-    inputs:
-      image_tag:
-        description: 'Docker image tag'
-        required: true
+  workflow_run:
+    workflows: ["Build and Push to ACR"]  # Must match the `name:` in build.yml exactly
+    types:
+      - completed
 
 env:
   RESOURCE_GROUP: MyResourceGroup
   WEBAPP_NAME: mywebappdocker123
   ACR_NAME: myregistry123
   IMAGE_NAME: myapp
+  IMAGE_TAG: latest  # Default tag for automatic deploy
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
 
     steps:
       - name: Azure Login
@@ -25,14 +26,16 @@ jobs:
 
       - name: Deploy to Web App from ACR
         run: |
+          echo "Deploying image: $ACR_NAME.azurecr.io/$IMAGE_NAME:$IMAGE_TAG"
           az webapp config container set \
             --name $WEBAPP_NAME \
             --resource-group $RESOURCE_GROUP \
-            --docker-custom-image-name $ACR_NAME.azurecr.io/$IMAGE_NAME:${{ github.event.inputs.image_tag }} \
+            --docker-custom-image-name $ACR_NAME.azurecr.io/$IMAGE_NAME:$IMAGE_TAG \
             --docker-registry-server-url https://$ACR_NAME.azurecr.io
 
       - name: Restart Web App
         run: |
+          echo "Restarting Web App: $WEBAPP_NAME"
           az webapp restart \
             --name $WEBAPP_NAME \
             --resource-group $RESOURCE_GROUP
