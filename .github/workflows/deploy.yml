@@ -2,7 +2,7 @@ name: Deploy to Azure Web App from ACR
 
 on:
   workflow_run:
-    workflows: ["Build and Push to ACR"]  # Must match the `name:` in build.yml exactly
+    workflows: ["Build and Push Docker Image"]  # Must match the `name:` in build.yml exactly
     types:
       - completed
 
